@@ -1,0 +1,40 @@
+{{ $prefix := .prefix }}
+{{ $namespace := .namespace }}
+{{ range $cert := .certs }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $prefix }}-{{ $cert.name | replace "." "-" }}
+  namespace: {{ $namespace }}
+spec:
+  secretName: {{ $cert.name | replace "." "-" }}-tls
+  issuerRef:
+    name: letsencryptdns
+    kind: ClusterIssuer
+  dnsNames:
+    {{ if $cert.wildcart}}
+    - '*.{{ $cert.name }}'
+    {{ end }}
+    - {{ $cert.name }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    replicator.v1.mittwald.de/replication-allowed: "true"
+    {{ if $cert.replicate }}
+    replicator.v1.mittwald.de/replicate-to:
+     {{ range $index, $element := $cert.replicateToNamespace }}
+       {{if $index}},{{end}}
+       {{$element}}
+       {{end}}
+    {{ end }}
+  name: {{ $cert.name | replace "." "-" }}-tls
+  namespace: {{ $namespace }}
+type: kubernetes.io/tls
+data:
+  ca.crt: ""
+  tls.crt: ""
+  tls.key: ""
+{{ end }}
