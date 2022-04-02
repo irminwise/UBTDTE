@@ -1,0 +1,19 @@
+{{ $namespace := .namespace }}
+{{ range $cert := .certs }}
+  {{ if $cert.replicate}}
+    {{ range $targetNamespace := .replicateToNamespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $cert.name | replace "." "-" }}-tls
+  namespace: {{ $targetNamespace }}
+  annotations:
+    replicator.v1.mittwald.de/replicate-from: {{ $namespace }}/{{ $cert.name | replace "." "-" }}-tls
+type: kubernetes.io/tls
+data:
+  tls.crt: ""
+  tls.key: ""
+    {{ end }}
+  {{ end }}
+{{ end }}
