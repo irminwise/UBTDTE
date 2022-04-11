@@ -7,8 +7,6 @@ metadata:
 spec:
   # Configures Calico networking.
   calicoNetwork:
-    nodeAddressAutodetectionV4:
-      interface: zt0
     ipPools:
     - blockSize: 26
       cidr: 192.168.10.0/16
